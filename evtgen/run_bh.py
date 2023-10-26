@@ -68,7 +68,7 @@ def main(args):
     if t_min>t_max:
         raise ValueError("'t_min'>'t_max' in the runcard.")
     rho,X0,_ = get_target_info(parameters)
-    integrated_luminosity = 1.2e37 * 0.5 * 1.0e-24 * 1.0e-9 * 3600.0 * 24 * days
+    
      #######################################################################################
     # Event Generator
     #######################################################################################
@@ -240,6 +240,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bethe-Heitler Generator Script")
     parser.add_argument("--runcard", type=str, required=True, help="Path to the runcard.card file.")
-    parser.add_argument("--batch", type=int, required=False, help="Batch number (used for parallel running).")
+    parser.add_argument("--batch", type=int, default=0, required=False, help="Batch number (used for parallel running).")
     args = parser.parse_args()
     main(args)

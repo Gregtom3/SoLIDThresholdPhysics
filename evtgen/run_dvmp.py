@@ -64,6 +64,9 @@ def main(args):
 
     rho,X0,_ = get_target_info(parameters)
     
+    # Load DVMP production class
+    DVMP = dvmpProduction(target_type, model_type)
+    
     #######################################################################################
     # Event Generator
     #######################################################################################
@@ -149,10 +152,12 @@ def main(args):
         pCM_Initial = np.sqrt((W**2-hIn*hIn-q*q)**2-4*(hIn*hIn)*(q*q))/(2*W)
         pCM_Final = np.sqrt((W**2-hOut*hOut-VM*VM)**2-4*(hOut*hOut)*(VM*VM))/(2*W)
         cth = (np.sqrt(q*q+pCM_Initial**2)*np.sqrt(VM*VM+pCM_Final**2)-q*VM)/(pCM_Initial*pCM_Final)
+    
+        # Record jacobian
+        jacobian[0] = 2*pCM_Initial*pCM_Final/(2*np.pi)
         
-        
-        # Get Cross Sectional Weight of Event
-        weight[0] = get_xsec(target_type,target_mass,model_type,gammaE,W,t,cth,pCM_Initial,pCM_Final)
+        # Get Cross Sectional Weight of Event --> weight[0] = dsigma_dcth 
+        weight[0] = DVMP.dsigma([gammaE,t]) * jacobian[0]
         if(weight[0]<0):
             continue
         
@@ -239,8 +244,6 @@ def main(args):
         smear_gammaE_[0]=smear_q.E()
         smear_m_vm_[0]=(smear_VM).M()
         smear_W_[0]=(hIn+smear_q).M()
-        # Record jacobian
-        jacobian[0] = 2*pCM_Initial*pCM_Final/(2*np.pi)
         # Record smear jacobian
         smear_pCM_Initial = np.sqrt((smear_W_[0]**2-hIn*hIn-smear_q*smear_q)**2-4*(hIn*hIn)*(smear_q*smear_q))/(2*smear_W_[0])
         smear_pCM_Final = np.sqrt((smear_W_[0]**2-smear_hOut*smear_hOut-smear_VM*smear_VM)**2-4*(smear_hOut*smear_hOut)*(smear_VM*smear_VM))/(2*smear_W_[0])
@@ -280,7 +283,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DVMP Generator Script")
     parser.add_argument("--runcard", type=str, required=True, help="Path to the runcard.card file.")
-    parser.add_argument("--batch", type=int, required=False, help="Batch number (used for parallel running).")
+    parser.add_argument("--batch", type=int, default=0, required=False, help="Batch number (used for parallel running).")
     args = parser.parse_args()
     main(args)
     

@@ -17,8 +17,13 @@ fi
 read -p "Enter the name of the simulation: " simulation_name
 
 # Check if the project already exists
-base_dir="/volatile/clas12/users/gmat/solid.data/coherent_deuteron_threshold/projects"
+base_dir="/volatile/clas12/users/$USER/solid.data/projects/"
 sim_dir="$base_dir/$simulation_name"
+
+if [ ! -d "$base_dir" ]; then
+    echo "The directory '$base_dir' does not exist. Please create it and try again."
+    exit 1
+fi
 
 if [ -d "$sim_dir" ]; then
     echo -e "${RED}The project '$simulation_name' already exists.${NC}"
@@ -197,7 +202,7 @@ cat > "$runcard_path_electroproduction" <<EOF
 #############################
 num_events: $num_events_electro
 output_file_location: $data_dir_electro
-output_file_prefix: bh
+output_file_prefix: electro
 process: electroproduction
 model_type: $model_type_dvmp
 
