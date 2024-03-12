@@ -21,6 +21,6 @@ detector: SoLID
 photon_energy_min: 5.67
 photon_energy_max: 8.8
 
-Q2_max: 0.02
+Q2_max: 0.1
 
 t_min: -3.00
