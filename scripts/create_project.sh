@@ -114,6 +114,8 @@ while true; do
     fi
 done
 
+read -p "Q2_max (GeV^2): " Q2_max_bh
+
 echo "************** DVMP INFO **************"
 read -p "num_events (For DVMP Photoproduction simulation): " num_events_photo
 read -p "num_batches (For DVMP Photoproduction simulation): " num_batches_photo
@@ -160,6 +162,7 @@ Mll2_max: $Mll2_max_bh
 
 t_min: $t_min_bh
 t_max: $t_max_bh
+Q2_max: $Q2_max_bh
 EOF
 
 ##################################################################

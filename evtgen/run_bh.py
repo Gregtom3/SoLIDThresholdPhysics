@@ -62,7 +62,8 @@ def main(args):
     Mll2_max = float(parameters.get("Mll2_max")) # GeV^2
     t_min = float(parameters.get("t_min"))   # GeV^2
     t_max = float(parameters.get("t_max"))   # GeV^2
-
+    Q2_max = float(parameters.get("Q2_max")) # GeV^2
+    
     if t_min>0 or t_max>0:
         raise ValueError("'t_min' and 't_max' by definition must be less than 0. Please edit the runcard accordingly.")
     if t_min>t_max:
@@ -76,9 +77,12 @@ def main(args):
     
     success=0
     for evt in tqdm(range(num_events)):
+        dsigma[0]=0
         weight[0]=0
         psf[0]=0
         flux[0]=0
+        flux_brem[0]=0
+        flux_epa[0]=0
         acc_eOut[0]=0
         acc_ePlus[0]=0
         acc_eMinus[0]=0
@@ -100,7 +104,11 @@ def main(args):
         hIn.SetXYZM(0,0,0,target_mass)
         
         # Do Bremmstrahlung
-        flux[0], gammaE = Bremmstrahlung(photon_energy_min,photon_energy_max,beam_energy,X0,target_length)
+        flux_brem[0], gammaE = Bremmstrahlung(photon_energy_min,photon_energy_max,beam_energy,X0,target_length)
+        flux_epa[0] = N_EquivalentPhotonApproximation(gammaE,beam_energy,Q2_max)
+        flux[0] = flux_brem[0]+flux_epa[0]
+        
+        #flux[0] += N_EquivalentPhotonApproximation(gammaE,beamE,q2max)
         q.SetPxPyPzE(0,0,gammaE,gammaE)
         
         # Get scattered electron
@@ -147,11 +155,14 @@ def main(args):
         comBOOST=(dilepton).BoostVector()
         theta_cm,phi_cm = get_theta_phi_cm(comBOOST,ePlus,hOut,hIn)
         
-        # Get event weight
-        weight[0] = get_dsigma_dt_dMll2_dcosth_dphi(t,gammaE,Mll2,theta_cm,phi_cm,target_type,target_mass)
+        # Get event differential cross section
+        dsigma[0] = get_dsigma_dt_dMll2_dcosth_dphi(t,gammaE,Mll2,theta_cm,phi_cm,target_type,target_mass)
 
         # Get phase space factor
-        psf[0] = (t_max-t_min)*(Mll2_max0-Mll2_min)*4*np.pi
+        psf[0] = (t_max-t_min)*(Mll2_max0-Mll2_min)*(4*np.pi)*(photon_energy_max-photon_energy_min)
+        
+        # Calculate full event weight
+        weight[0] = dsigma[0]*psf[0]*flux[0]
         
         # Get acceptances of final state particles
         acc_ePlus[0] = acc_e(eOut)

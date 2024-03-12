@@ -77,10 +77,13 @@ def main(args):
         
         
         # Set necessary variables to 0
+        dsigma[0]=0.0
         weight[0]=0.0
         decay_weight[0]=0.0
         psf[0]=0.0
         flux[0]=0.0
+        flux_brem[0]=0.0
+        flux_epa[0]=0.0
         acc_eOut[0]=0.0
         acc_hOut[0]=0.0
         acc_ePlus[0]=0.0
@@ -107,8 +110,9 @@ def main(args):
         # Real Photon/Virtual Photon generation
         if process == "photoproduction":
             # Do Bremmstrahlung & EPA
-            flux[0], gammaE = N_Bremmstrahlung(photon_energy_min,photon_energy_max,beam_energy,target_length,X0)
-            flux[0]=flux[0]+N_EquivalentPhotonApproximation(gammaE,beam_energy,Q2_max)
+            flux_brem[0], gammaE = Bremmstrahlung(photon_energy_min,photon_energy_max,beam_energy,target_length,X0)
+            flux_epa[0] = N_EquivalentPhotonApproximation(gammaE,beam_energy,Q2_max)
+            flux[0]=flux_brem[0]+flux_epa[0]
             q.SetPxPyPzE(0,0,gammaE,gammaE)
     
         elif process == "electroproduction":
@@ -140,7 +144,7 @@ def main(args):
         temp1, temp2 = GenPhase.GetDecay(0),GenPhase.GetDecay(1)
         VM.SetPxPyPzE(temp1.Px(),temp1.Py(),temp1.Pz(),temp1.E())
         hOut.SetPxPyPzE(temp2.Px(),temp2.Py(),temp2.Pz(),temp2.E())
-        psf[0] = 4 * np.pi
+        
         
         # Get event parameters
         t = (hIn-hOut).M2()
@@ -156,10 +160,9 @@ def main(args):
         # Record jacobian
         jacobian[0] = 2*pCM_Initial*pCM_Final/(2*np.pi)
         
-        # Get Cross Sectional Weight of Event --> weight[0] = dsigma_dcth 
-        weight[0] = DVMP.dsigma([gammaE,t]) * jacobian[0]
-        if(weight[0]<0):
-            continue
+        # Get event differential cross section (dsigma/dOmega)
+        dsigma[0] = DVMP.dsigma([gammaE,t])
+        
         
         # Decay the J/Psi
         GenPhase.SetDecay(VM,2,np.array([mE,mE]))
@@ -176,6 +179,7 @@ def main(args):
         m_vm_[0]     = VM.M()
         Q2_[0]       = Q2
         
+        
         # Calculate more kinematics
         y = (eIn-eOut).E()/eIn.E()
         Q2 = - (eIn-eOut).M2()
@@ -187,10 +191,23 @@ def main(args):
         p = np.sqrt(Ep**2-target_mass**2)
         l = np.sqrt((mJpsi**2-ePlus*ePlus-eMinus*eMinus)**2-4*(ePlus*ePlus)*(eMinus*eMinus))/(2*mJpsi)
         cth_decay = (Ep * mJpsi/2 - ePlus*hOut)/(p*l)
-        wth = 0.75*(1.0 + r + (1.0 - 3.0 * r) * cth_decay**2)
+        wth = 3/8/np.pi*(1.0 - r + (3*r-1) * cth_decay**2) # Integral[wth, {cth_decay, -1, 1}, {phi,0,2pi}] = 1
         branch = 0.05971
         decay_weight[0]=wth*branch
         
+        # Calculate phase space factor
+        # 4pi from y+d-->J/Psi+d'
+        # 4pi from J/Psi-->ee
+        # Egmax - Egmin from incident photon
+        # *** For electroproduction *** The flux[0] contains the psf from 'cthmax - cthmin' and '2pi' from photon angle
+        psf[0] = (4 * np.pi) * (4 * np.pi) * (photon_energy_max - photon_energy_min)
+        
+        
+        # Calculate full event weight
+        weight[0] = decay_weight[0] * dsigma[0] * jacobian[0] * flux[0] * psf[0]
+        
+        if(weight[0]<0):
+            continue
         # Get the acceptances of the final state particles
         acc_ePlus[0] = acc_e(ePlus)
         acc_eMinus[0]= acc_e(eMinus)

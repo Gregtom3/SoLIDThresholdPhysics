@@ -196,10 +196,11 @@ def analyze_trees(trees, version, make_analysis_cuts, dsigmadt_arr, integrated_l
 
     for tree in trees:
 
-        data = tree.arrays(["smear_gammaE", "gammaE", "smear_Q2", "smear_m_vm","smear_t","t","weight","decay_weight","J","acc_ePlus","acc_hOut","psf","flux","acc_eMinus"],library="np")
+        data = tree.arrays(["smear_gammaE", "gammaE", "smear_Q2", "dsigma", "smear_m_vm","smear_t","t","weight","decay_weight","J","acc_ePlus","acc_hOut","psf","flux","acc_eMinus"],library="np")
         event_E = (data["smear_gammaE"] if make_analysis_cuts else data["gammaE"])
         event_Q2 = data["smear_Q2"]
         event_M = data["smear_m_vm"]
+        dsigma = data["dsigma"]
         event_t = np.abs((data["smear_t"] if make_analysis_cuts else data["t"]) - DVMP.get_tmin(event_E))
         weight = data["weight"]
         decay_weight = data["decay_weight"]
@@ -223,9 +224,9 @@ def analyze_trees(trees, version, make_analysis_cuts, dsigmadt_arr, integrated_l
                 t_condition = (tmin < event_t) & (event_t <= tmax)
                 full_condition = cut_conditions & E_condition & t_condition
                 fills[i][j] += np.sum(full_condition)
-                counts_ = full_condition * weight*decay_weight*psf*flux* (integrated_luminosity / photo_events)
+                counts_ = full_condition * weight*(integrated_luminosity / photo_events)
                 counts[i][j] += np.sum(counts_)
-                diffxsec_counts[i][j] += np.sum(full_condition * weight/J)
+                diffxsec_counts[i][j] += np.sum(full_condition * dsigma)
                 Eacc[i] += np.sum(event_E * counts_)
 
     return fills, counts, diffxsec_counts, Eacc
@@ -507,7 +508,7 @@ def plot_Ebinned_totalxsec_both(dsigmadt_arr, photo_cut_df,photo_df,electro_cut_
     
 ###########################################################################
 if __name__ == "__main__":
-    PROJECT_NAME = "test3"
+    PROJECT_NAME = "test5"
     PROJECT_PATH = "/volatile/clas12/users/gmat/solid.data/projects/"
     num_batches = 25 # Number of CPUs to use for analyzing data in parallel
     main([PROJECT_NAME,PROJECT_PATH,num_batches])

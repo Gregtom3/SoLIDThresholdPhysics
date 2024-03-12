@@ -19,7 +19,7 @@ def VirtualPhoton(kmin,kmax,beamE,target_mass,eIn,eOut,hIn):
     flux = np.sqrt((hIn*qq)**2 + Q2 * target_mass**2)/np.sqrt((eIn*hIn)**2 - mE**2 * target_mass**2)
     amp = (2.0 * Q2 - 4.0 * mE**2) / (Q2**2)
     phase = eOut.P()**2/(2.0*eOut.E()*(2.0*np.pi)**3)
-    volume = 2.0 * np.pi * np.abs(kmax-kmin) * (cthmax-cthmin)
+    volume = 2.0 * np.pi * (cthmax-cthmin)
     y = (hIn * qq)/(hIn*eIn)
     gy = hIn.M() * np.sqrt(Q2)/(hIn * eIn)
     eps = (1.0 - y - 0.25 * gy * gy) / (1.0 - y + 0.5 * y * y + 0.25 * gy * gy)

@@ -11,8 +11,11 @@ smear_eOut, smear_hOut, smear_ePlus, smear_eMinus, smear_VM, smear_q = TLorentzV
 
 # Returned eventgen variables
 # ---------------------------------------------
+dsigma=np.array([0.0])
 weight=np.array([0.0])
 psf=np.array([0.0])
+flux_brem=np.array([0.0])
+flux_epa=np.array([0.0])
 flux=np.array([0.0])
 acc_eOut=np.array([0.0])
 acc_ePlus=np.array([0.0])
@@ -58,9 +61,12 @@ def create_bh_ttree(parameters):
     outTree.Branch("smear_VM",smear_VM)
     
     outTree.Branch("q",q)
+    outTree.Branch("dsigma",dsigma,"dsigma/D")
     outTree.Branch("weight",weight,"weight/D")
     outTree.Branch("psf",psf,"psf/D")
     outTree.Branch("flux",flux,"flux/D")
+    outTree.Branch("flux_brem",flux_brem,"flux_brem/D")
+    outTree.Branch("flux_epa",flux_epa,"flux_epa/D")
     outTree.Branch("acc_eOut",acc_eOut,"acc_eOut/D")
     outTree.Branch("acc_ePlus",acc_ePlus,"acc_ePlus/D")
     outTree.Branch("acc_eMinus",acc_eMinus,"acc_eMinus/D")

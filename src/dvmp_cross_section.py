@@ -23,7 +23,9 @@ class dvmpProduction:
         if self.targetType == "p" and self.modelType == "23g":
             self.dsigma = self.dsigma_dt___proton_23g
             self.sigma  = self.sigma___proton_23g
-            raise ValueError("No proton target implementation included yet.")
+            self.N2g = 6.499e3
+            self.N3g = 2.894e3
+            self.v = 1/(16*np.pi)
             
         elif self.targetType == "d" and self.modelType == "PomeronLQCD":
             self.dsigma = self.dsigma_dt___deuteron_PomeronLQCD
@@ -145,8 +147,24 @@ class dvmpProduction:
         
         return sigma_val
         
-
-
+    def dsigma_dt___proton_23g(self,pars):
+        Eg = pars[0]
+        t  = pars[1]
+        W = np.sqrt(2*self.mT*Eg+self.mT**2)
+        x = (2*self.mT*mJpsi+mJpsi**2)/(W**2-self.mT**2)
+        return  (self.N2g * self.v * (1-x)**2*np.exp(1.13*t)/(mJpsi**2)+self.N3g*self.v*np.exp(1.13*t)/(mJpsi**4))
+        
+    def sigma___proton_23g(self,pars):
+        Eg = pars[0]
+        tmin = self.get_tmin(Eg)
+        tmax = self.get_tmax(Eg)
+        W = np.sqrt(2*self.mT*Eg+self.mT**2)
+        x = (2*self.mT*mJpsi+mJpsi**2)/(W**2-self.mT**2)
+        
+        def bound(t):
+            return (1/1.13)*np.exp(1.13*t)*self.v*(self.N3g+mJpsi**2*self.N2g*(1-x)**2)/mJpsi**4
+        
+        return bound(tmax)-bound(tmin)
 # N2g = 6.499e3
 # N3g = 2.894e3
 # v = 1/(16*np.pi)
