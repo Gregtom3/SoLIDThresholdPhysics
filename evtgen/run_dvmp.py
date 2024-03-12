@@ -191,7 +191,7 @@ def main(args):
         p = np.sqrt(Ep**2-target_mass**2)
         l = np.sqrt((mJpsi**2-ePlus*ePlus-eMinus*eMinus)**2-4*(ePlus*ePlus)*(eMinus*eMinus))/(2*mJpsi)
         cth_decay = (Ep * mJpsi/2 - ePlus*hOut)/(p*l)
-        wth = 3/8/np.pi*(1.0 - r + (3*r-1) * cth_decay**2) # Integral[wth, {cth_decay, -1, 1}, {phi,0,2pi}] = 1
+        wth = (3/8)*(1/(2*np.pi))*(1.0 + r + (1-3*r) * cth_decay**2) # Integral[wth, {cth_decay, -1, 1}, {phi,0,2pi}] = 1
         branch = 0.05971
         decay_weight[0]=wth*branch
         
