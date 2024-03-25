@@ -1,4 +1,4 @@
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 import numpy as np
 import pandas as pd
 from constants import *
@@ -30,13 +30,13 @@ class dvmpProduction:
         elif self.targetType == "d" and self.modelType == "PomeronLQCD":
             self.dsigma = self.dsigma_dt___deuteron_PomeronLQCD
             self.sigma  = self.sigma___deuteron_PomeronLQCD
-            self.df_deuteron    = pd.read_csv("/work/clas12/users/gmat/SoLIDThresholdPhysics/tables/dvmp_xsec_deuteron.csv",sep="\t").sort_values(by=['Beam Energy [GeV]', '-t [GeV**2]'])
+            self.df_deuteron    = pd.read_csv("/work/clas12/users/gmat/SoLIDThresholdPhysics/tables/dvmp_xsec_deuteron.csv",sep=",").sort_values(by=['Beam Energy [GeV]', '-t [GeV**2]'])
             # Create Interpolator
             self.E_deuteron = self.df_deuteron['Beam Energy [GeV]'].values
             self.T_deuteron = self.df_deuteron['-t [GeV**2]'].values
-            self.DSDT_deuteron = self.df_deuteron.iloc[:, 3].values
+            self.DSDT_deuteron = self.df_deuteron['ds/dt'].values
             self.interp_deuteron = LinearNDInterpolator(list(zip(self.E_deuteron, self.T_deuteron)), self.DSDT_deuteron)
-
+            self.extrap_deuteron = NearestNDInterpolator(list(zip(self.E_deuteron, self.T_deuteron)), self.DSDT_deuteron)
             # Compute tmin and tmax for each energy
             self.unique_energies = np.unique(self.E_deuteron)
             self.tmtm_deuteron = []
@@ -98,24 +98,16 @@ class dvmpProduction:
         photon_energy = pars[0]
         t = pars[1]
         
-        # Determine index of closest energy in table
-        idx_of_E = np.abs(photon_energy - self.tmtm_deuteron[:,0]).argmin()
-        
-        # Get table energy, tmin, tmax
-        closest_photon_energy, tmin, tmax = self.tmtm_deuteron[idx_of_E,0],self.tmtm_deuteron[idx_of_E,1],self.tmtm_deuteron[idx_of_E,2]
-        
-        # Check t range
-        if -t<tmin or -t>tmax:
-            return -1
-        
         # Calculate dsigma_dt
-        dsigma_dt = self.interp_deuteron(closest_photon_energy,-t)
+        dsigma_dt = self.interp_deuteron(photon_energy,-t)
+        if np.isnan(dsigma_dt):
+            dsigma_dt = self.extrap_deuteron(photon_energy,-t)
         return dsigma_dt
     
     # Total cross section
     def sigma___deuteron_PomeronLQCD(self,pars):
         
-       
+        
         gammaE = pars[0] # photon_energy as per convention
         
         # Early return for gammaE <= 6
