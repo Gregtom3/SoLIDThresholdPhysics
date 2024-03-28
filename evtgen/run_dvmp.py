@@ -119,7 +119,8 @@ def main(args):
             # Do virtual photon
             flux[0], temp = VirtualPhoton(photon_energy_min,photon_energy_max,beam_energy,target_mass,eIn,eOut,hIn)
             if(flux[0]==0):
-                continue
+                print("flux[0] is 0")
+                #continue
             q.SetPxPyPzE(temp.Px(),temp.Py(),temp.Pz(),temp.E())
             gammaE=q.E()
     
@@ -136,7 +137,8 @@ def main(args):
         # Check the W threshold
         W = (q+hIn).M()
         if W < mJpsi+target_mass:
-            continue
+            print(W,mJpsi+target_mass)
+            #continue
             
         # Decay (gamma + p,d) --> (J/psi + p,d)
         GenPhase.SetDecay(q+hIn,2,np.array([mJpsi,target_mass]))
@@ -149,8 +151,8 @@ def main(args):
         # Get event parameters
         t = (hIn-hOut).M2()
 
-        if(t < t_min):
-            continue
+        #if(t < t_min):
+            #continue
     
         # Determine kinematics of first decay
         pCM_Initial = np.sqrt((W**2-hIn*hIn-q*q)**2-4*(hIn*hIn)*(q*q))/(2*W)
@@ -207,7 +209,9 @@ def main(args):
         weight[0] = decay_weight[0] * dsigma[0] * jacobian[0] * flux[0] * psf[0]
         
         if(weight[0]<0):
-            continue
+            print(decay_weight[0],dsigma[0],jacobian[0],flux[0])
+            #continue
+            
         # Get the acceptances of the final state particles
         acc_ePlus[0] = acc_e(ePlus)
         acc_eMinus[0]= acc_e(eMinus)
