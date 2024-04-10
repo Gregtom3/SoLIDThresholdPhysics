@@ -30,7 +30,7 @@ class dvmpProduction:
         elif self.targetType == "d" and self.modelType == "PomeronLQCD":
             self.dsigma = self.dsigma_dt___deuteron_PomeronLQCD
             self.sigma  = self.sigma___deuteron_PomeronLQCD
-            self.df_deuteron    = pd.read_csv("/work/clas12/users/gmat/SoLIDThresholdPhysics/tables/dvmp_xsec_deuteron.csv",sep=",").sort_values(by=['Beam Energy [GeV]', '-t [GeV**2]'])
+            self.df_deuteron    = pd.read_csv("tables/dvmp_xsec_deuteron.csv",sep=",").sort_values(by=['Beam Energy [GeV]', '-t [GeV**2]'])
             # Create Interpolator
             self.E_deuteron = self.df_deuteron['Beam Energy [GeV]'].values
             self.T_deuteron = self.df_deuteron['-t [GeV**2]'].values

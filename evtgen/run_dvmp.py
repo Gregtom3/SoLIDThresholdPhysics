@@ -118,8 +118,9 @@ def main(args):
         elif process == "electroproduction":
             # Do virtual photon
             flux[0], temp = VirtualPhoton(photon_energy_min,photon_energy_max,beam_energy,target_mass,eIn,eOut,hIn)
-            if(flux[0]==0):
-                continue
+            if(flux[0]<=0):
+                print(flux,"flux wrong")
+                break
             q.SetPxPyPzE(temp.Px(),temp.Py(),temp.Pz(),temp.E())
             gammaE=q.E()
     
@@ -136,10 +137,11 @@ def main(args):
         # Check the W threshold
         W = (q+hIn).M()
         if W < mJpsi+target_mass:
-            continue
+            print(W,mJpsi+target_mass,"have to rerun photon energy above threshold")
+            break
             
         # Decay (gamma + p,d) --> (J/psi + p,d)
-        GenPhase.SetDecay(q+hIn,2,np.array([mJpsi,target_mass]))
+        GenPhase.SetDecay(q+hIn,2,np.array([mJpsi,target_mass]))   # evenly over 4pi in CM frame, even though output is in lab frame
         GenPhase.Generate()
         temp1, temp2 = GenPhase.GetDecay(0),GenPhase.GetDecay(1)
         VM.SetPxPyPzE(temp1.Px(),temp1.Py(),temp1.Pz(),temp1.E())
@@ -149,8 +151,8 @@ def main(args):
         # Get event parameters
         t = (hIn-hOut).M2()
 
-        if(t < t_min):
-            continue
+        #if(t < t_min):
+            #continue
     
         # Determine kinematics of first decay
         pCM_Initial = np.sqrt((W**2-hIn*hIn-q*q)**2-4*(hIn*hIn)*(q*q))/(2*W)
@@ -162,10 +164,10 @@ def main(args):
         
         # Get event differential cross section (dsigma/dOmega)
         dsigma[0] = DVMP.dsigma([gammaE,t])
-        
+        #print(gammaE,t,dsigma[0])
         
         # Decay the J/Psi
-        GenPhase.SetDecay(VM,2,np.array([mE,mE]))
+        GenPhase.SetDecay(VM,2,np.array([mE,mE]))  # evenly over 4pi in CM frame, even though output is in lab frame
         GenPhase.Generate()
         ep=GenPhase.GetDecay(0)
         em=GenPhase.GetDecay(1)
@@ -196,18 +198,21 @@ def main(args):
         decay_weight[0]=wth*branch
         
         # Calculate phase space factor
-        # 4pi from y+d-->J/Psi+d'
-        # 4pi from J/Psi-->ee
+        # for photoproduction
+        # 4pi from y+d-->J/Psi+d' in CM frame
+        # 4pi from J/Psi-->ee in rest frame
         # Egmax - Egmin from incident photon
+        # this choice of degree of freedom means there is no physics forbidden region and phase space size is simple
         # *** For electroproduction *** The flux[0] contains the psf from 'cthmax - cthmin' and '2pi' from photon angle
-        psf[0] = (4 * np.pi) * (4 * np.pi) * (photon_energy_max - photon_energy_min)
-        
+        psf[0] = (4 * np.pi) * (4 * np.pi) * (photon_energy_max - photon_energy_min)        
         
         # Calculate full event weight
         weight[0] = decay_weight[0] * dsigma[0] * jacobian[0] * flux[0] * psf[0]
         
         if(weight[0]<0):
-            continue
+            print(decay_weight[0],dsigma[0],jacobian[0],flux[0],"weight wrong")
+            break
+            
         # Get the acceptances of the final state particles
         acc_ePlus[0] = acc_e(ePlus)
         acc_eMinus[0]= acc_e(eMinus)
@@ -267,7 +272,7 @@ def main(args):
         smear_jacobian[0] = 2*smear_pCM_Initial*smear_pCM_Final/(2*np.pi)
         
         # Record if the event was successfully simulated
-        if(weight[0]>0.0):
+        if(weight[0]>=0.0):
             success+=1
             ttree.Fill()
             if acc_ePlus[0]>0 and acc_eMinus[0]>0 and acc_hOut[0]>0:

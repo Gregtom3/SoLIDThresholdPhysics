@@ -1,0 +1,26 @@
+# Runcard for DVMP generator
+#############################
+num_events: 250000
+output_file_location: out/photoproduction/data
+output_file_prefix: photoproduction
+process: photoproduction
+model_type: PomeronLQCD
+
+
+# Experiment configuration
+#############################
+beam_energy: 8.8
+beam_current: 1.25 
+target_length: 15
+target_type: d
+days: 50
+detector: SoLID
+
+# Kinematic Limits
+#############################
+photon_energy_min: 5.67
+photon_energy_max: 8.8
+
+Q2_max: 0.5
+
+t_min: -3.00
