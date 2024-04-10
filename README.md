@@ -36,3 +36,19 @@ The **run_bh.py** and **run_dvmp.py** scripts will event-by-event generate the c
 bash ./scripts/create_project.sh
 ```
 This will create multiple runcards within a new subdirectory of _./runcards/_ which can be run using their corresponding slurm scripts in a new subdirectory of _./scripts/_ with the **sbatch** command (again, from the _SoLIDThresholdPhysics_ directory)
+
+# Note
+
+1. jpsi-d coherent photoproduction is checked, jpsi-d electroproduction doesn't run somehow, BH-d photoproduction is not checked (by Zhiwen, 2024/04/10)
+2. degree of freedom and phasespace which the generator chooses. this choice means there is no physics forbidden region in the simple phasespace
+```
+   jpsi photoproduction
+        solid angle 4pi from gamma+d-->J/Psi+d' in CM frame
+        solid angle 4pi from J/Psi-->ee in CM frame
+        Egmax - Egmin from real photon of EPA and Bremsstrahlung
+   jpsi electroproduction
+        solid angle 4pi from gamma+d-->J/Psi+d' in CM frame
+        solid angle 4pi from J/Psi-->ee in CM frame
+        Egmax - Egmin from virtual photon of scattered e-
+        solid angle 4pi from scattered e-
+```
